@@ -1,0 +1,5 @@
+<launch>
+    <arg name="project" default="gtsam_ex"/>
+    <rosparam file="$(find gtsam_ex)/config/param.yaml" command="load" />    
+    <node pkg="$(arg project)" type="$(arg project)_poseGraph"   name="$(arg project)_poseGraph"    output="screen"/>
+</launch>

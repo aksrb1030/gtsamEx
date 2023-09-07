@@ -1,0 +1,3 @@
+gtsam_ex:
+
+  g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/sphere.g2o"
