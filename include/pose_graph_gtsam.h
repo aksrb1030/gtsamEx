@@ -30,10 +30,13 @@ public :
     std::vector<edgeInfo> vecEdgeInfo_;
 
 private:
-    int configIter_;
-    bool configStart_;
+    int configIter_ = 0;
+    bool configStart_ = false;
 
-    gtsam::NonlinearFactorGraph::shared_ptr graph_;
-    gtsam::Values::shared_ptr initial_;
+    // std::shared_ptr<std::thread> optimThread_;
+
+    // gtsam::NonlinearFactorGraph::shared_ptr graph_;
+    // gtsam::Values::shared_ptr initial_;
+
 };
 

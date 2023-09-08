@@ -107,7 +107,7 @@ void visualizer::runVisualizerChg()
 
 
         // chgConstraintPub_.publish();
-        // rate.sleep();
+        rate.sleep();
         
     }
 }

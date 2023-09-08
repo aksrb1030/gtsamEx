@@ -1,6 +1,6 @@
 <launch>
 
-    <node type="rviz" name="rviz3" pkg="rviz" args="-d $(find gtsam_ex)/config/gtsam.rviz"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find gtsam_ex)/config/gtsam.rviz"/>
 
     <arg name="project" default="gtsam_ex"/>
         <include file="$(find gtsam_ex)/launch/poseGraph.launch" />

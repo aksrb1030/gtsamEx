@@ -25,7 +25,7 @@ Panels:
       Expanded:
         - /Global Options1
       Splitter Ratio: 0.5
-    Tree Height: 1084
+    Tree Height: 371
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -95,7 +95,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 575.3010864257812
+      Distance: 530.3760986328125
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -111,9 +111,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.10979633778333664
+      Pitch: 0.3447963297367096
       Target Frame: <Fixed Frame>
-      Yaw: 6.191751480102539
+      Yaw: 0.1285659223794937
     Saved: ~
 Window Geometry:
   Displays:
