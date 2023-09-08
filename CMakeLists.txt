@@ -23,7 +23,6 @@ generate_dynamic_reconfigure_options(
 
 find_package(PCL REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Ceres REQUIRED)
 find_package(Sophus REQUIRED)
 find_package(GTSAMCMakeTools)
 find_package(GTSAM REQUIRED)
@@ -35,7 +34,6 @@ include_directories(
   /usr/include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
-  ${CERES_INCLUDE_DIRS}
   ${Sophus_INCLUDE_DIRS}
   ${GTSAM_INCLUDE_DIR}
 

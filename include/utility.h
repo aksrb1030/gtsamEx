@@ -32,6 +32,9 @@
 #include <sophus/se3.hpp>
 #include <sophus/so3.hpp>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
+
 
 struct vertexInfo
 {

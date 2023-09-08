@@ -1,7 +1,5 @@
 #pragma once
 #include "utility.h"
-// #include "pose_graph_gtsam.h"
-
 #include <jsk_rviz_plugins/OverlayText.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -14,7 +12,9 @@ public:
     
     void run();
     void runVisualizerOri();
-    void runVisualizerChg();
+    void runVisualizerChg(gtsam::NonlinearFactorGraph::shared_ptr &graph_, gtsam::Values &result);
+    void pubText();
+    
     std::vector<vertexInfo> getVetexVec()
     {
         return vecVertexInfo_;
@@ -55,17 +55,31 @@ public:
         return check_;
     }
 
+    // void setGraph(gtsam::NonlinearFactorGraph &graph)
+    // {
+    //     graph_ = graph;
+    // }
+
+    // void setResult(gtsam::Values &result)
+    // {
+    //     result_ = result;
+    // }
+
 
 private:
     ros::Publisher oriConstraintPub_;
     ros::Publisher chgConstraintPub_;
+    ros::Publisher textPub_;
 
     ros::Publisher posePub_;
-    std::shared_ptr<std::thread> publishThread_;
+    std::shared_ptr<std::thread> publishText_;
     std::vector<vertexInfo> vecVertexInfo_;
     std::vector<edgeInfo> vecEdgeInfo_;
 
     int iter_;
     bool check_;
+    gtsam::NonlinearFactorGraph graph_;
+    gtsam::Values result_;
+
     
 };

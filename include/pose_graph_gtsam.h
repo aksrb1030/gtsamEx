@@ -33,7 +33,7 @@ private:
     int configIter_ = 0;
     bool configStart_ = false;
 
-    // std::shared_ptr<std::thread> optimThread_;
+    std::shared_ptr<std::thread> optimThread_;
 
     // gtsam::NonlinearFactorGraph::shared_ptr graph_;
     // gtsam::Values::shared_ptr initial_;
