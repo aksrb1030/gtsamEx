@@ -1,3 +1,6 @@
 gtsam_ex:
-
-  g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/sphere.g2o"
+  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/sphere.g2o"
+  g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/parking-garage.g2o"
+  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/cubicle.g2o"
+  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/rim.g2o"
+  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/torus3D.g2o"

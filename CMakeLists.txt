@@ -62,6 +62,3 @@ catkin_package(
 add_executable(${PROJECT_NAME}_poseGraph src/pose_graph_gtsam.cpp src/visualizer.cpp)
 target_link_libraries(${PROJECT_NAME}_poseGraph ${catkin_LIBRARIES} ${Sophus_LIBRARIES} gtsam)
 add_dependencies(${PROJECT_NAME}_poseGraph ${PROJECT_NAME}_gencfg)
-
-# add_executable(gtsam_ex src/pose_graph_gtsam.cpp)
-# target_link_libraries(gtsam_ex ${catkin_LIBRARIES} ${Sophus_LIBRARIES} gtsam)

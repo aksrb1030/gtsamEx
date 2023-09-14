@@ -39,15 +39,15 @@
 struct vertexInfo
 {
     int id;
-    float x, y, z;
-    float qx, qy, qz, qw;
+    double x, y, z;
+    double qx, qy, qz, qw;
 };
 
 struct edgeInfo
 {
     int id_1, id_2;
-    float x, y, z;
-    float qx, qy, qz, qw;
+    double x, y, z;
+    double qx, qy, qz, qw;
     gtsam::Matrix infoM6x6 = gtsam::I_6x6;
 };
 

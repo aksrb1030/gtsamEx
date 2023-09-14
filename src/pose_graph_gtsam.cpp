@@ -23,69 +23,6 @@ void poseGraph::ConfigCallBack(gtsam_ex::gtsamConfig &config, uint32_t level)
     v_.pubText();
 }
 
-void poseGraph::SaveOptiResult(gtsam::NonlinearFactorGraph::shared_ptr &graph, gtsam::Values &result)
-{
-    // std::string savePath = "/home/mgkim/catkin_ws/src/gtsamEx/data/result_gtsam_" + std::to_string(configIter_);
-    // std::ofstream fout(savePath + ".g2o");
-    // std::ofstream csv_out(savePath + ".csv");
-
-    for (const gtsam::Values::KeyValuePair key_value : result)
-    {
-        gtsam::Pose3 solved_pose = key_value.value.cast<gtsam::Pose3>();
-        auto t = solved_pose.translation();
-        auto R = solved_pose.rotation().quaternion();
-
-
-        // fout << "VERTEX_SE3:QUAT " << key_value.key
-        //      << " " << t.x() << " " << t.y() << " " << t.z() << " "
-        //      << R.x() << " " << R.y() << " " << R.z() << " " << R.w() << " " << std::endl;
-        // csv_out << t.x() << ", " << t.y() << ", " << t.z() << std::endl;
-    }
-
-
-    
-
-    // edges
-    // for (auto &factor : *graph)
-    // {
-    //     gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr between_factor =
-    //         std::dynamic_pointer_cast<gtsam::BetweenFactor<gtsam::Pose3>>(factor);
-    //     if (between_factor)
-    //     {
-    //         gtsam::SharedNoiseModel model = between_factor->noiseModel();
-    //         gtsam::noiseModel::Gaussian::shared_ptr gausissian_model =
-    //             std::dynamic_pointer_cast<gtsam::noiseModel::Gaussian>(model);
-    //         if (gausissian_model)
-    //         {
-    //             gtsam::Matrix info_mat = gausissian_model->R().transpose() * gausissian_model->R();
-    //             gtsam::Pose3 solved_pose = between_factor->measured();
-    //             auto t = solved_pose.translation();
-    //             auto R = solved_pose.rotation().toQuaternion();
-
-    //             fout << "EDGE_SE3:QUAT " << between_factor->key1() << " " << between_factor->key2()
-    //                  << " " << t.x() << " " << t.y() << " " << t.z() << " "
-    //                  << R.x() << " " << R.y() << " " << R.z() << " " << R.w() << " ";
-
-    //             gtsam::Matrix info_g2o = gtsam::I_6x6;
-    //             info_g2o.block(0, 0, 3, 3) = info_mat.block(3, 3, 3, 3); // cov translation
-    //             info_g2o.block(3, 3, 3, 3) = info_mat.block(0, 0, 3, 3); // cov rotation
-    //             info_g2o.block(0, 3, 3, 3) = info_mat.block(0, 3, 3, 3); // off diagonal
-    //             info_g2o.block(3, 0, 3, 3) = info_mat.block(3, 0, 3, 3); // off diagonal
-    //             for (int i = 0; i < 6; ++i)
-    //             {
-    //                 for (int j = 0; j < 6; ++j)
-    //                 {
-    //                     fout << info_g2o(i, j) << " ";
-    //                 }
-    //             }
-    //             fout << std::endl;
-    //         }
-    //     }
-    // }
-    // fout.close();
-    // csv_out.close();
-}
-
 void poseGraph::readG2o()
 {
     int id = 0;
@@ -113,10 +50,9 @@ void poseGraph::readG2o()
             {
                 edgeInfo edge;
                 fin >> edge.id_1 >> edge.id_2;
-                fin >> edge.qw >> edge.qx >> edge.qy >> edge.qz;
                 fin >> edge.x >> edge.y >> edge.z;
+                fin >> edge.qx >> edge.qy >> edge.qz >> edge.qw ;
 
-                // gtsam::Matrix infoM6x6 = gtsam::I_6x6;
                 
                 for (int i = 0; i < 6; ++i)
                 {
@@ -134,14 +70,12 @@ void poseGraph::readG2o()
     }
     else
     {
+        std::cout << "Don't find g2o file! Please check file path in data/param.yaml" << "\n";
         exit(1);
     }
     
      if (vecVertexInfo.size() != 0 || vecEdgeInfo.size() != 0)
     {
-        // optimThread_->join();
-        // optimThread_.reset(new std::thread(std::bind(&visualizer::poseGraph, this)));
-
         optimThread_ = std::make_shared<std::thread>(&poseGraph::Optimization, this, std::ref(vecVertexInfo), std::ref(vecEdgeInfo));
         v_.setVertexVec(vecVertexInfo);
         v_.setEdgeVec(vecEdgeInfo);
@@ -166,15 +100,6 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
             gtsam::NonlinearFactorGraph::shared_ptr graph(new gtsam::NonlinearFactorGraph);
             gtsam::Values::shared_ptr initial(new gtsam::Values);
 
-            // for (auto data : v_.getVetexVec())
-            // {
-            //     std::cout << "data.id : " <<data.id << "\n";
-            //     std::cout << "data.x : " << data.x << " data.y : " << data.y << " data.z :" << data.z << "\n";
-            //     std::cout << "================================" << "\n";
-            // }
-
-            // exit(1);
-
             int vertexCnt = 0, edgeCnt = 0;
 
             for (auto data : v_.getVetexVec())
@@ -186,7 +111,7 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
             }
 
             for (auto data : v_.getEdgeVec())
-            {
+            {   
                 gtsam::Key vertexI, vertexJ;
 
                 gtsam::Rot3 R = gtsam::Rot3::Quaternion(data.qw, data.qx, data.qy, data.qz);
@@ -208,7 +133,6 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
                 graph->add(factor);
                 edgeCnt++;
             }
-
 
             // 첫 번째 정점을 고정, gtsma에서 prior factor를 추가
 
@@ -241,7 +165,6 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
             std::cout << "==================================="
                       << "\n";
 
-            // SaveOptiResult(graph, result);
             v_.runVisualizerChg(graph, result);
         }
         r.sleep();
