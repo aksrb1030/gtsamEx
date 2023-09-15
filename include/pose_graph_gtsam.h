@@ -34,9 +34,5 @@ private:
     bool configStart_ = false;
 
     std::shared_ptr<std::thread> optimThread_;
-
-    // gtsam::NonlinearFactorGraph::shared_ptr graph_;
-    // gtsam::Values::shared_ptr initial_;
-
 };
 

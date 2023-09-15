@@ -25,6 +25,12 @@ cd ..
 catkin_make
 ```
 
+
+## Run the pacakge
+```
+roslaunch gtsam_ex run_gtsam.launch
+```
+
 ## Visualizer
 
 ### dynamic_reconfigure

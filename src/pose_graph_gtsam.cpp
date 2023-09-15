@@ -7,8 +7,7 @@ poseGraph::poseGraph(/* args */)
 
 void poseGraph::AllocateMemory()
 {
-    // initial.reset(new gtsam::Values);
-    // graph.reset(new gtsam::NonlinearFactorGraph);
+    
 }
 
 void poseGraph::ConfigCallBack(gtsam_ex::gtsamConfig &config, uint32_t level)
