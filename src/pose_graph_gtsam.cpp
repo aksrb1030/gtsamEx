@@ -15,63 +15,107 @@ void poseGraph::ConfigCallBack(gtsam_ex::gtsamConfig &config, uint32_t level)
     configIter_ = config.iterlation;
     configStart_ = config.startBool;
 
-    std::cout << "configStart_ : " << configStart_ << "\n";
-
     v_.setIter(configIter_);
     v_.setCheck(configStart_);
     v_.pubText();
 }
 
-void poseGraph::readG2o()
+bool poseGraph::ReadTrj()
+{
+    std::ifstream ifs(trjPathTopic_);
+
+    double timestamp;
+    double x, y, z;
+    double roll, pitch, heading;
+    
+    if (!ifs.is_open())
+    {
+        std::cerr << "Do not open file. Check your file path in param.yaml" << std::endl;
+        return 1;
+    }
+
+    std::string line;
+    while (std::getline(ifs, line))
+    {
+        while (!line.empty() && std::isspace(line.back()))
+        {
+            line.pop_back();
+        }
+
+        std::vector<std::string> tokens;
+        Tokenize(line, tokens, "\t");
+
+        trjInfo trj;
+        trj.timestamp = std::stod(tokens[0]);
+        trj.x = std::stod(tokens[1]);
+        trj.y = std::stod(tokens[2]);
+        trj.z = std::stod(tokens[3]);
+        trj.roll = std::stod(tokens[4]);
+        trj.pitch = std::stod(tokens[5]);
+        trj.yaw = std::stod(tokens[6]);
+        vecTrjInfo_.push_back(trj);
+    }
+    ifs.close();
+}
+
+bool poseGraph::MakeG2OFormat()
+{
+    if (vecTrjInfo_.size() == 0)
+    {
+        return 1;
+    }
+        
+}
+
+bool poseGraph::ReadG2o()
 {
     int id = 0;
-    std::ifstream fin(g2oPathTopic_);
+    std::ifstream ifs(trjPathTopic_);
 
     int num = 0;
 
     std::vector<vertexInfo> vecVertexInfo;
     std::vector<edgeInfo> vecEdgeInfo;
 
-    if (fin.is_open())
+    if (!ifs.is_open())
     {
-        while (!fin.eof())
+        std::cerr << "Do not open file. Check your file path in param.yaml" << std::endl;
+        return 1;
+    }
+    
+    while (!ifs.eof())
+    {
+        std::string type;
+        ifs >> type;
+        
+        if (type == "VERTEX_SE3:QUAT")
         {
-            std::string type;
-            fin >> type;
+            vertexInfo vertex;
+            ifs >> vertex.id >> vertex.x >> vertex.y >> vertex.z >> vertex.qx >> vertex.qy >> vertex.qz >> vertex.qw;
+            vecVertexInfo.push_back(vertex);
+        }
+        else if (type == "EDGE_SE3:QUAT")
+        {
+            edgeInfo edge;
+            ifs >> edge.id_1 >> edge.id_2;
+            ifs >> edge.x >> edge.y >> edge.z;
+            ifs >> edge.qx >> edge.qy >> edge.qz >> edge.qw ;
+
             
-            if (type == "VERTEX_SE3:QUAT")
+            for (int i = 0; i < 6; ++i)
             {
-                vertexInfo vertex;
-                fin >> vertex.id >> vertex.x >> vertex.y >> vertex.z >> vertex.qx >> vertex.qy >> vertex.qz >> vertex.qw;
-                vecVertexInfo.push_back(vertex);
-            }
-            else if (type == "EDGE_SE3:QUAT")
-            {
-                edgeInfo edge;
-                fin >> edge.id_1 >> edge.id_2;
-                fin >> edge.x >> edge.y >> edge.z;
-                fin >> edge.qx >> edge.qy >> edge.qz >> edge.qw ;
-
-                
-                for (int i = 0; i < 6; ++i)
+                for (int j = i; j < 6; ++j)
                 {
-                    for (int j = i; j < 6; ++j)
-                    {
-                        double mValue;
-                        fin >> mValue;
-                        edge.infoM6x6(i, j) = edge.infoM6x6(j, i) = mValue;
-                    }
+                    double mValue;
+                    ifs >> mValue;
+                    edge.infoM6x6(i, j) = edge.infoM6x6(j, i) = mValue;
                 }
-
-                vecEdgeInfo.push_back(edge);
             }
+
+            vecEdgeInfo.push_back(edge);
         }
     }
-    else
-    {
-        std::cout << "Don't find g2o file! Please check file path in data/param.yaml" << "\n";
-        exit(1);
-    }
+   
     
      if (vecVertexInfo.size() != 0 || vecEdgeInfo.size() != 0)
     {
@@ -89,6 +133,11 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
     while (ros::ok())
     {
         if(v_.getVetexVec().size() == 0 && v_.getEdgeVec().size() == 0)
+        {
+            continue;
+        }
+
+        if (checkIter_ == configIter_)
         {
             continue;
         }
@@ -163,6 +212,7 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
             std::cout << "final error: " << graph->error(result) << std::endl;
             std::cout << "==================================="
                       << "\n";
+            checkIter_ = configIter_;
 
             v_.runVisualizerChg(graph, result);
         }
@@ -181,7 +231,15 @@ int main(int argc, char **argv)
     f = boost::bind(&poseGraph::ConfigCallBack, &pg, _1, _2);
     server.setCallback(f);
 
-    pg.readG2o();
+    if(pg.trjPathTopic_.substr(pg.trjPathTopic_.size() - 4) == ".txt")
+    {
+        pg.ReadTrj();
+        pg.MakeG2OFormat();
+    }
+    else
+    {
+        pg.ReadG2o();
+    }
 
     ros::spin();
 

@@ -18,18 +18,24 @@ private:
 public:
     poseGraph(/* args */);
 
-    void readG2o();
+    
     void ConfigCallBack(gtsam_ex::gtsamConfig &config, uint32_t level);
     void Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edgeInfo> &vecEdge);
     void SaveOptiResult(gtsam::NonlinearFactorGraph::shared_ptr &graph, gtsam::Values &result);
+    bool MakeG2OFormat();
+    bool ReadG2o();
+    bool ReadTrj();
 
 public : 
     visualizer v_;
 
     std::vector<vertexInfo> vecVertexInfo_;
     std::vector<edgeInfo> vecEdgeInfo_;
+    std::vector<trjInfo> vecTrjInfo_;
 
 private:
+
+    int checkIter_;
     int configIter_ = 0;
     bool configStart_ = false;
 

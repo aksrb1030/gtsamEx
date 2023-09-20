@@ -1,6 +1,7 @@
 gtsam_ex:
-  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/sphere.g2o"
-  g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/parking-garage.g2o"
-  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/cubicle.g2o"
-  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/rim.g2o"
-  # g2oPath : "/home/mgkim/catkin_ws/src/gtsamEx/data/torus3D.g2o"
+  # filePath : "/home/mgkim/catkin_ws/src/gtsamEx/data/sphere.g2o"
+  # filePath : "/home/mgkim/catkin_ws/src/gtsamEx/data/parking-garage.g2o"
+  # filePath : "/home/mgkim/catkin_ws/src/gtsamEx/data/cubicle.g2o"
+  # filePath : "/home/mgkim/catkin_ws/src/gtsamEx/data/rim.g2o"
+  # filePath : "/home/mgkim/catkin_ws/src/gtsamEx/data/torus3D.g2o"
+  filePath : "/media/mgkim/MT_R_SSD_5/01_ITSK_Data/gangnam/2211241209_ITSK/1687.874862_rtk_coordinate1.txt"

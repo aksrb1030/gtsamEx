@@ -36,6 +36,13 @@
 #include <boost/make_shared.hpp>
 
 
+struct trjInfo
+{
+    double timestamp;
+    double x, y, z;
+    double roll, pitch, yaw;
+};
+
 struct vertexInfo
 {
     int id;
@@ -59,14 +66,26 @@ private:
 public:
     ros::NodeHandle nh_;
     std::string lidarTopic_;
-    std::string g2oPathTopic_;
+    std::string trjPathTopic_;
 
+    void Tokenize(const std::string &str, std::vector<std::string> &tokens, const std::string &delimiters)
+    {
+        std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+        std::string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+        while (std::string::npos != pos || std::string::npos != lastPos)
+        {
+            tokens.push_back(str.substr(lastPos, pos - lastPos));
+            lastPos = str.find_first_not_of(delimiters, pos);
+            pos = str.find_first_of(delimiters, lastPos);
+        }
+    }
     
 
     ParamServer()
     {
-        nh_.param<std::string>("/gtsam_ex/g2oPath",g2oPathTopic_, "/g2oPath");
         nh_.param<std::string>("/gtsam_ex/pointCloudTopic",lidarTopic_, "/pointCloudTopic");
+        nh_.param<std::string>("/gtsam_ex/filePath",trjPathTopic_, "/filePath");
     }
 
 };
