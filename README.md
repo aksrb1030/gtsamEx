@@ -5,9 +5,9 @@
 * Optimization .g2o and control to iterlation in dynamic_reconfigure
 
 ## Dependency
-[NoeticLink] : https://wiki.ros.org/noetic/Installation/Ubuntu
+<!-- [NoeticLink] :  -->
 
-* ROS (tested in [Noetic][NoeticLink] only)
+* ROS (tested in [Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu) only)
 ```
 sudo apt-get install ros-noetic-jsk-visualization
 ```
