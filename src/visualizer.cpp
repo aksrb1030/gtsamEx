@@ -4,62 +4,56 @@
 visualizer::visualizer()
 {
 
-    publishText_.reset(new std::thread(std::bind(&visualizer::pubText, this)));
+    publishText_.reset(new std::thread(std::bind(&visualizer::runVisualText, this)));
 
     oriConstraintPub_ = nh_.advertise<visualization_msgs::MarkerArray>("ori_constraint_list", 1, true);
-    chgConstraintPub_ = nh_.advertise<visualization_msgs::MarkerArray>("chg_constraint_list", 1, true);
     textPub_ = nh_.advertise<jsk_rviz_plugins::OverlayText>("overlay_text", 1);
+    chgConstraintPub_ = nh_.advertise<visualization_msgs::MarkerArray>("chg_constraint_list", 1, true);
 }
 
 void visualizer::run()
 {
     runVisualizerOri();
+    runVisualText();
 }
 
-void visualizer::pubText()
+void visualizer::runVisualText()
 {
-    // ros::Rate r(0.5);
+    ros::Rate r(1);
 
-    // while (ros::ok())
-    // {
-        
-    //     r.sleep();
-    // }
-    
-    jsk_rviz_plugins::OverlayText text;
-
-    std::string inputText = "Iter : " + std::to_string(iter_);
-
-    text.action = jsk_rviz_plugins::OverlayText::ADD;
-    text.width = 100;
-    text.height = 20;
-    text.left = 10;
-    text.top = 10;
-    text.text_size = 12;
-    text.line_width = 2.0;
-    text.font = "DejaVu Sans Mono";
-    text.text = "Iter : " + std::to_string(iter_);
-    if (check_ == true)
+    while (ros::ok())
     {
+        if (iter_ == 0)
+            maxIter_ = 0;
+        
+        jsk_rviz_plugins::OverlayText text;
+
+        std::string inputText = "Iter : " + std::to_string(maxIter_) + " / " + std::to_string(iter_);
+        // std::cout << inputText << "\n";
+
+        text.action = jsk_rviz_plugins::OverlayText::ADD;
+        text.width = 200;
+        text.height = 20;
+        text.left = 10;
+        text.top = 10;
+        text.text_size = 12;
+        text.line_width = 2.0;
+        text.font = "DejaVu Sans Mono";
+        text.text = inputText;
+
         text.fg_color.r = 25 / 255.0;
         text.fg_color.g = 1.0;
         text.fg_color.b = 240 / 255.0;
         text.fg_color.a = 1.0;
-    }
-    else
-    {
-        text.fg_color.r = 255.0 / 255.0;
-        text.fg_color.g = 0.0;
-        text.fg_color.b = 0.0;
-        text.fg_color.a = 1.0;
-    }
 
-    text.bg_color.r = 0.0;
-    text.bg_color.g = 0.0;
-    text.bg_color.b = 0.0;
-    text.bg_color.a = 0.8;
+        text.bg_color.r = 0.0;
+        text.bg_color.g = 0.0;
+        text.bg_color.b = 0.0;
+        text.bg_color.a = 0.8;
 
-    textPub_.publish(text);
+        textPub_.publish(text);
+        r.sleep();
+    }
 }
 
 void visualizer::runVisualizerOri()
@@ -142,7 +136,7 @@ void visualizer::runVisualizerOri()
     oriConstraintPub_.publish(markerArray);
 }
 
-void visualizer::runVisualizerChg(gtsam::NonlinearFactorGraph::shared_ptr &graph, gtsam::Values &result)
+void visualizer::runVisualizerChg(gtsam::NonlinearFactorGraph::shared_ptr &graph_, gtsam::Values &result)
 {
     ros::Rate rate(0.5);
 

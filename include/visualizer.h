@@ -13,7 +13,7 @@ public:
     void run();
     void runVisualizerOri();
     void runVisualizerChg(gtsam::NonlinearFactorGraph::shared_ptr &graph_, gtsam::Values &result);
-    void pubText();
+    void runVisualText();
     
     std::vector<vertexInfo> getVetexVec()
     {
@@ -40,9 +40,19 @@ public:
         iter_ = iter;
     }
 
-    int getIter()
+    const int getIter()
     {
         return iter_;
+    }
+
+    void setMaxIter(int &maxIter)
+    {
+        maxIter_ = maxIter;
+    }
+
+    const int getMaxIter()
+    {
+        return maxIter_;
     }
 
     void setCheck(bool &check)
@@ -76,7 +86,7 @@ private:
     std::vector<vertexInfo> vecVertexInfo_;
     std::vector<edgeInfo> vecEdgeInfo_;
 
-    int iter_;
+    int iter_, maxIter_;
     bool check_;
     gtsam::NonlinearFactorGraph graph_;
     gtsam::Values result_;
