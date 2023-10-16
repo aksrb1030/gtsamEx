@@ -21,6 +21,7 @@
 #include <thread>
 #include <mutex>
 #include <sstream>
+#include <tuple>
 
 #include <gtsam/slam/dataset.h>
 #include <gtsam_ex/gtsamConfig.h>
@@ -80,7 +81,41 @@ public:
             pos = str.find_first_of(delimiters, lastPos);
         }
     }
-    
+
+    std::tuple<double, double, double, double> eulerToQuaternion(double roll, double pitch, double yaw)
+    {
+        double cy = cos(yaw * 0.5);
+        double sy = sin(yaw * 0.5);
+        double cp = cos(pitch * 0.5);
+        double sp = sin(pitch * 0.5);
+        double cr = cos(roll * 0.5);
+        double sr = sin(roll * 0.5);
+
+        double qw = cr * cp * cy + sr * sp * sy;
+        double qx = sr * cp * cy - cr * sp * sy;
+        double qy = cr * sp * cy + sr * cp * sy;
+        double qz = cr * cp * sy - sr * sp * cy;
+
+        return std::make_tuple(qw, qx, qy, qz);
+    }
+
+    Eigen::Matrix4f createTransformationMatrix(float roll, float pitch, float yaw, float x, float y, float z)
+    {
+        // Create a 3D rotation matrix from roll, pitch, yaw
+        Eigen::AngleAxisf rollAngle(roll, Eigen::Vector3f::UnitX());
+        Eigen::AngleAxisf pitchAngle(pitch, Eigen::Vector3f::UnitY());
+        Eigen::AngleAxisf yawAngle(yaw, Eigen::Vector3f::UnitZ());
+        Eigen::Quaternion<float> q = yawAngle * pitchAngle * rollAngle;
+        Eigen::Matrix3f rotationMatrix = q.matrix();
+
+        // Create a 3D translation vector
+        Eigen::Translation3f translation(x, y, z);
+
+        // Combine rotation and translation into a single 4x4 transformation matrix
+        Eigen::Matrix4f transformationMatrix = (translation * q).matrix();
+
+        return transformationMatrix;
+    }
 
     ParamServer()
     {

@@ -1,5 +1,4 @@
 <launch>
-  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen">
-    <param name="int_param" value="42" />
-  </node>
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen"/>
+  <!-- </node> -->
 </launch>

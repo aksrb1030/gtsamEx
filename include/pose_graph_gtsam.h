@@ -2,8 +2,9 @@
 #include "utility.h"
 #include "visualizer.h"
 #include "gtsam_ex/gtsamConfig.h"
-
 #include <dynamic_reconfigure/server.h>
+
+#define UPDATEDIS 1.0
 
 
 // #include <sophus se3.hpp="">
@@ -22,9 +23,9 @@ public:
     void ConfigCallBack(gtsam_ex::gtsamConfig &config, uint32_t level);
     void Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edgeInfo> &vecEdge);
     void SaveOptiResult(gtsam::NonlinearFactorGraph::shared_ptr &graph, gtsam::Values &result);
-    bool MakeG2OFormat();
-    bool ReadG2o();
-    bool ReadTrj();
+    int MakeG2OFormat();
+    int ReadG2o();
+    int ReadTrj();
 
 public : 
     visualizer v_;

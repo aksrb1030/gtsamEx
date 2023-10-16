@@ -91,5 +91,8 @@ private:
     gtsam::NonlinearFactorGraph graph_;
     gtsam::Values result_;
 
-    
+    double scaleX_ = 0;
+    double scaleY_ = 0;
+    double scaleZ_ = 0;
+    bool checkScale_ = false;
 };

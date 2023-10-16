@@ -13,9 +13,11 @@ void poseGraph::ConfigCallBack(gtsam_ex::gtsamConfig &config, uint32_t level)
 {
     configIter_ = config.iterlation;
     v_.setIter(configIter_);
+
+    ROS_INFO("\033[1;32m----> Set dynamic_reconfigure.\033[0m");
 }
 
-bool poseGraph::ReadTrj()
+int poseGraph::ReadTrj()
 {
     std::ifstream ifs(trjPathTopic_);
 
@@ -51,17 +53,83 @@ bool poseGraph::ReadTrj()
         vecTrjInfo_.push_back(trj);
     }
     ifs.close();
+    return 0;
 }
 
-bool poseGraph::MakeG2OFormat()
+int poseGraph::MakeG2OFormat()
 {
+
+    std::vector<vertexInfo> vecVertexInfo;
+    std::vector<edgeInfo> vecEdgeInfo;
+
+    std::cout << "MakeG2OFormat()" << "\n";
     if (vecTrjInfo_.size() == 0)
     {
         return 1;
     }
+
+    int num = 0;
+
+    for (auto data : vecTrjInfo_)
+    {
+        vertexInfo vertex;
+        vertex.id = num;
+        vertex.x = data.x;
+        vertex.y = data.y;
+        vertex.z = data.z;
+
+        auto [qw, qx, qy, qz] = eulerToQuaternion(data.roll, data.pitch, data.yaw);
+
+        vertex.qw = qw;
+        vertex.qx = qx;
+        vertex.qy = qy;
+        vertex.qz = qz;
+        vecVertexInfo.push_back(vertex);
+
+        num ++;
+    }
+
+    for (int i = 1; i < vecTrjInfo_.size(); i++)
+    {
+        edgeInfo edge;
+
+        edge.id_1 = i-1;
+        edge.id_2 = i;
+
+        Eigen::Matrix4f beforePose = createTransformationMatrix(vecTrjInfo_[i - 1].roll, vecTrjInfo_[i - 1].pitch, vecTrjInfo_[i - 1].yaw,
+                                                                vecTrjInfo_[i - 1].x, vecTrjInfo_[i - 1].y, vecTrjInfo_[i - 1].z);
+        Eigen::Matrix4f afterPose = createTransformationMatrix(vecTrjInfo_[i].roll, vecTrjInfo_[i].pitch, vecTrjInfo_[i].yaw,
+                                                                vecTrjInfo_[i].x, vecTrjInfo_[i].y, vecTrjInfo_[i].z);
+
+        Eigen::Isometry3d relativePose((beforePose.inverse() * afterPose).cast<double>());
+
+        Eigen::Vector3d translation = relativePose.translation();
+        edge.x = translation.x();
+        edge.y = translation.y();
+        edge.z = translation.z();
+
+        Eigen::Quaterniond quaternion(relativePose.rotation());
+        edge.qw = quaternion.w();
+        edge.qx = quaternion.x();
+        edge.qy = quaternion.y();
+        edge.qz = quaternion.z();
+
+        vecEdgeInfo.push_back(edge);
+    }
+
+    if (vecVertexInfo.size() != 0 || vecEdgeInfo.size() != 0)
+    {
+        optimThread_ = std::make_shared<std::thread>(&poseGraph::Optimization, this, std::ref(vecVertexInfo), std::ref(vecEdgeInfo));
+        v_.setVertexVec(vecVertexInfo);
+        v_.setEdgeVec(vecEdgeInfo);
+        v_.runVisualizerOri();
+    }
+    
+
+    return 0;
 }
 
-bool poseGraph::ReadG2o()
+int poseGraph::ReadG2o()
 {
     int id = 0;
     std::ifstream ifs(trjPathTopic_);
@@ -114,7 +182,6 @@ bool poseGraph::ReadG2o()
         optimThread_ = std::make_shared<std::thread>(&poseGraph::Optimization, this, std::ref(vecVertexInfo), std::ref(vecEdgeInfo));
         v_.setVertexVec(vecVertexInfo);
         v_.setEdgeVec(vecEdgeInfo);
-        // v_.runVisualText();
         v_.runVisualizerOri();
     }
     return 0;
@@ -127,16 +194,15 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
     while (ros::ok())
     {
         if (v_.getVetexVec().size() == 0 && v_.getEdgeVec().size() == 0)
-        {
             continue;
-        }
 
         if (checkIter_ == configIter_)
-        {
             continue;
-        }
-        // if (configStart_ == true)
-        // {
+
+        // if (configIter_  == 0)
+        //     continue;
+
+        std::cout << "configIter_ : " << configIter_ << "\n";
 
         gtsam::NonlinearFactorGraph::shared_ptr graph(new gtsam::NonlinearFactorGraph);
         gtsam::Values::shared_ptr initial(new gtsam::Values);
@@ -158,11 +224,17 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
             gtsam::Rot3 R = gtsam::Rot3::Quaternion(data.qw, data.qx, data.qy, data.qz);
             gtsam::Point3 t(data.x, data.y, data.z);
 
+
+            // 공분산의 역행렬  | 불확실성의 역수
             gtsam::Matrix infoMat = gtsam::I_6x6;
             infoMat.block<3, 3>(0, 0) = data.infoM6x6.block<3, 3>(3, 3); //  cov rotation
             infoMat.block<3, 3>(3, 3) = data.infoM6x6.block<3, 3>(0, 0); //  cov translation
             infoMat.block<3, 3>(0, 3) = data.infoM6x6.block<3, 3>(0, 3); //  off diagonal
             infoMat.block<3, 3>(3, 0) = data.infoM6x6.block<3, 3>(3, 0); //  off diagonal
+
+            // std::cout << data.infoM6x6 << "\n\n\n";
+            // std::cout << infoMat << "\n";
+            // std::cout << "===============================" << "\n";
 
             // gaussian noise model
             gtsam::SharedNoiseModel model = gtsam::noiseModel::Gaussian::Information(infoMat);
@@ -191,7 +263,7 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
                 keyValue.key, keyValue.value.cast<gtsam::Pose3>(), priorModel));
             break;
         }
-        ROS_INFO("\033[1;32m----> Prepare Optimization.\033[0m");
+        
         gtsam::LevenbergMarquardtParams paramLM;
         paramLM.setVerbosity("ERROR");
         paramLM.setMaxIterations(configIter_);
@@ -199,7 +271,7 @@ void poseGraph::Optimization(std::vector<vertexInfo> &vecVertex, std::vector<edg
         gtsam::LevenbergMarquardtOptimizer optimizer(graphWithPrior, *initial, paramLM);
         gtsam::Values result = optimizer.optimize();
 
-        std::cout << "====== Optimization complete ======" << std::endl;
+        ROS_INFO("\033[1;32m----> Optimization complete.\033[0m");
 
         checkIter_ = configIter_;
 
@@ -227,6 +299,7 @@ int main(int argc, char **argv)
 
     if (pg.trjPathTopic_.substr(pg.trjPathTopic_.size() - 4) == ".txt")
     {
+        std::cout << "1" << "\n";
         pg.ReadTrj();
         pg.MakeG2OFormat();
     }
